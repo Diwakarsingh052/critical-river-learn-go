@@ -10,3 +10,4 @@ q1. Create a program to store and print a person's and their project's details. 
     and then adding 1 to it
 
     // try to use fmt.Printf instead of println
+    pkg.go.dev // fmt
