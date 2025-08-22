@@ -1,3 +1,6 @@
 go env GOROOT
 go env GOPATH
 go mod init github.com/username/reponame
+
+
+
