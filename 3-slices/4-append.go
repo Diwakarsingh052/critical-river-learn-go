@@ -24,12 +24,14 @@ func main() {
 
 	fmt.Println("after")
 	s = append(s, 10, 20, 30, 40, 50)
-
 	inspect.InspectSlice("s", s)
+
 	x = append(x, 60, 70)
 	inspect.InspectSlice("x", x)
+
 	a = append(a, 10, 20)
 	inspect.InspectSlice("a", a)
+	
 	fmt.Println(s)
 	fmt.Println(x)
 }
