@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"proj/db"
 	"proj/sum"
-	"strings"
 ) // moduleName/packageName
 
 // package name must be in lower case, no -, _, no numbers
@@ -24,6 +22,5 @@ func main() {
 	//io.ReadAll()
 	//ioutil.ReadFile()
 	//os.ReadFile()
-	rand.Int()
-	strings.ToUpper()
+
 }
