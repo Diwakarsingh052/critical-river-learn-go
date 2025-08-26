@@ -9,6 +9,7 @@ import (
 
 func main() {
 	greet()
+	fmt.Println("end of main")
 }
 
 func greet() {
@@ -23,16 +24,29 @@ func greet() {
 	fmt.Println(cmdArgs)
 	name := cmdArgs[0]
 	ageString := cmdArgs[1]
-	//markString := cmdArgs[2]
+	markString := cmdArgs[2]
 
 	fmt.Println(name)
 	//var err error // default value of err is nil // which means no error
 	// if there is an error there is a value in the form of a msg
+
+	//if you are calling a function , and if that func returns an error,
+	//next thing MUST be error handling ,
+	// you should not continue to write further logic
 	age, err := strconv.Atoi(ageString)
+	if err != nil {
+		log.Println(err)
+		//panic(err) // this will stop the execution of the program
+		// os.Exit(1) // this will quit the program
+		// log.Fatal(err) // it uses os.Exit(1) internally
+		// not recommended to use // only during the app startup log.Fatal is fine
+		return
+	}
+	marks, err := strconv.Atoi(markString)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	fmt.Println(age)
+	fmt.Println(name, age, marks)
 
 }

@@ -12,4 +12,5 @@ func main() {
 	//a[10] = 100 //update
 	a[9] = 200
 	fmt.Println(a)
+
 }
