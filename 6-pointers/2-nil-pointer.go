@@ -2,10 +2,11 @@ package main
 
 import "fmt"
 
+// Failed Update Mistake Number 1, Nil pointer
 var x = 10
 
 // in Go everything is pass by value
-// in case of poninters we copy the address from one partner to another
+// in case of pointers we copy the address from one partner to another
 func main() {
 	var p *int     // nil // default value of a pointer is nil
 	updateValue(p) // copying nil to p1 pointer

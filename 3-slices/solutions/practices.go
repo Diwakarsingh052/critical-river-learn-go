@@ -23,3 +23,9 @@ func UpdateAndAppend(s []int, index int, value int) []int {
 	return s // make sure to return the updated slice if using append
 	// or use double pointers
 }
+
+func UpdateAndAppendPointers(s *[]int, index int, value int) {
+	//s[index] = value
+	*s = append(*s, 1000)
+	// or use double pointers
+}
