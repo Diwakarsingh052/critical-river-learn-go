@@ -12,5 +12,6 @@ func main() {
 	}
 	c.AddUser()
 	fmt.Println(c)
+	//c.db // not allowed, because db is private
 
 }
