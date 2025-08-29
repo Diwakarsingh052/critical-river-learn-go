@@ -27,8 +27,8 @@ q2. Create a stringops package with three files.
 q3. Create the following directory structure
                 app-/
                     ├──stores/
-                    │  └── store.go
-                       └── models.go // to store domain structs
+                    │  └── store.go // interface is placed inside this file
+                       └── models.go // to store domain structs // user struct
                     │    ├── mysql/
                     │    │   └── mysql.go
                     │    ├── postgres/
