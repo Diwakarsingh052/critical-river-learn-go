@@ -19,6 +19,6 @@ func main() {
 	ur.Create(u)
 
 	ur = p
-	
+
 	ur.Create(u)
 }
