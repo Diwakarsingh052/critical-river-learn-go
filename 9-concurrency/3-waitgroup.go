@@ -22,7 +22,7 @@ func main() {
 }
 
 func helloV2(wg *sync.WaitGroup) {
-
+	// wg.Done call must be inside the goroutine only
 	defer wg.Done() // decrement the counter by one
 	time.Sleep(time.Second * 2)
 	fmt.Println("hello")
