@@ -30,6 +30,10 @@ func (f File) Read(b []byte) (int, error) {
 	return 0, nil
 }
 
+func (f File) PrintFileName() {
+	fmt.Println("print file name method", f.Name)
+}
+
 type IO struct {
 	name string
 }
@@ -48,6 +52,10 @@ func (i IO) Read(b []byte) (int, error) {
 
 func DoReading(r io.Reader) {
 	r.Read(nil)
+	f, ok := r.(File) // type assertion
+	if ok {
+		f.PrintFileName()
+	}
 	fmt.Printf("%T\n", r)
 }
 
