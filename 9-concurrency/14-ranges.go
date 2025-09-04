@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 // copy the whole program,
@@ -30,7 +31,20 @@ func main() {
 		// it would run infinitely, channel needs to be closed to stop this range
 		// if channel is closed range will receive remaining values and stop
 		for i := range ch { // range over channel is a receive operation
-			fmt.Println(i)
+			time.Sleep(1 * time.Second)
+			fmt.Println(i, "range 1")
+		}
+	})
+
+	// use multiple ranges only when ranges are not able to keep up with the sender
+	// otherwise no need to use multiple ranges
+	wg.Go(func() {
+
+		// it would run infinitely, channel needs to be closed to stop this range
+		// if channel is closed range will receive remaining values and stop
+		for i := range ch { // range over channel is a receive operation
+			time.Sleep(1 * time.Second)
+			fmt.Println(i, "range 2")
 		}
 	})
 
