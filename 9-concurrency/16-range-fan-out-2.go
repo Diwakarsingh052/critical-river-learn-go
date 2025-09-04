@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	wgTasks := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
+		time.Sleep(1 * time.Second)
 		defer wg.Done()
 		for i := 1; i <= 5; i++ {
 			wgTasks.Add(1)
@@ -23,13 +25,14 @@ func main() {
 			}()
 		}
 
-	}()
+		// running another goroutine to wait for all tasks to finish
+		wg.Go(func() {
+			// wait for all tasks to finish, then close the channel
+			wgTasks.Wait()
+			close(ch)
+		})
 
-	wg.Go(func() {
-		// wait for all tasks to finish, then close the channel
-		wgTasks.Wait()
-		close(ch)
-	})
+	}()
 
 	wg.Add(1)
 	go func() {
