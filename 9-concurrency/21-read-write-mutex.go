@@ -72,4 +72,5 @@ func PrintY(m *sync.RWMutex) {
 	defer m.RUnlock()
 	fmt.Println("Printing y variable")
 	fmt.Println(y)
+	fmt.Printf("%s", "hello"[3])
 }
