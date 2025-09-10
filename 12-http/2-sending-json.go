@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -31,12 +32,21 @@ func sendJson(w http.ResponseWriter, r *http.Request) {
 		Email:     "abc@gmail.com",
 	}
 
-	jsonData, err := json.Marshal(u)
+	// NewEncoder will encode the struct to json and write the response to the client
+	err := json.NewEncoder(w).Encode(u)
 	if err != nil {
-		// text based error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		errMap := map[string]any{"error": "error in encoding"}
+		json.NewEncoder(w).Encode(errMap)
 	}
-
-	w.Write(jsonData)
+	log.Println("resp sent to the client")
+	// marshal converts the type to json
+	//jsonData, err := json.Marshal(u)
+	//if err != nil {
+	//	// text based error
+	//	http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	return
+	//}
+	//
+	// write the response to the client
+	//w.Write(jsonData)
 }
