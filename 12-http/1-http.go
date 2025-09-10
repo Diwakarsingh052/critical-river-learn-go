@@ -34,10 +34,13 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	// add recovery to the goroutine to stop the crashing of the server
 	wg := new(sync.WaitGroup)
 	wg.Go(func() {
+		// panic inside a new manually created goroutine would stop the server
 		fmt.Println("doing some internal jobs when home is called")
 		panic("some error")
 	})
 	wg.Wait()
+
+	// panic would be automatically recovered by http
 	//panic("something went wrong")
 	w.Write([]byte("hello"))
 }
