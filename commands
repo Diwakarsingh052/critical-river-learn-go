@@ -3,4 +3,11 @@ go env GOPATH
 go mod init github.com/username/reponame
 
 
+// get all required external dependencies of a project
+// fix module errors
+// remove unused modules
+go mod tidy
+
+go get moduleName // to fetch individual dependency
+
 

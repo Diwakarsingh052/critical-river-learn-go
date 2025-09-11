@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 // go get github.com/google/uuid
@@ -42,7 +41,7 @@ func main() {
 }
 func Hello(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
+	uuid.NewString()
 	// getting the reqId from the context
 	// checking the type of the value using type assertion
 	// ok would be false if the value is not of type string
@@ -55,7 +54,7 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 }
 func ReqIdMid(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		reqId := uuid.NewString()
+
 		ctx := r.Context() // taking the copy of context from the request
 
 		// adding the reqId to the context
