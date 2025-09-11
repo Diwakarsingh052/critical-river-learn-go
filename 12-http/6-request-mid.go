@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 // go get github.com/google/uuid
@@ -56,7 +57,7 @@ func ReqIdMid(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context() // taking the copy of context from the request
-
+		reqId := uuid.NewString()
 		// adding the reqId to the context
 		// context stores the key value pair
 		ctx = context.WithValue(ctx, reqIdKey, 123)
