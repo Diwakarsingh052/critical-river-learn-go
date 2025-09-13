@@ -10,6 +10,18 @@ package main
 	}
 */
 
+/*
+curl -X POST "http://localhost:8080/users" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice.johnson@example.com",
+    "age": 28,
+    "created_at": "2025-09-13T10:30:00Z"
+  }'
+*/
+
 // create a gin server
 // register one post endpoint
 // read the body
