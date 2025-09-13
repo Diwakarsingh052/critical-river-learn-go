@@ -34,3 +34,14 @@ func main() {
 	//parse the body and store json it in a struct
 	// c.ShouldBindJSON(&struct)
 }
+
+func createUser(c *gin.Context) {
+	var user user
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Printf("Received user: %+v\n", user)
+	c.JSON(200, user)
+}
