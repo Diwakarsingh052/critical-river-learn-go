@@ -33,8 +33,10 @@ func sendJson(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// NewEncoder will encode the struct to json and write the response to the client
+
 	err := json.NewEncoder(w).Encode(u)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		errMap := map[string]any{"error": "error in encoding"}
 		json.NewEncoder(w).Encode(errMap)
 	}

@@ -30,7 +30,9 @@ func main() {
 func Home(w http.ResponseWriter, r *http.Request) {
 	//w http.ResponseWriter, is used to write resp to the client
 	// http.Request// anything user send us would be in the request struct
-
+	if r.Method != http.MethodGet {
+		return
+	}
 	// add recovery to the goroutine to stop the crashing of the server
 	wg := new(sync.WaitGroup)
 	wg.Go(func() {

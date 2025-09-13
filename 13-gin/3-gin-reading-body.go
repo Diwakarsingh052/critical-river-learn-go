@@ -1,0 +1,24 @@
+package main
+
+/*
+	{
+	  "id": 1,
+	  "name": "Alice Johnson",
+	  "email": "alice.johnson@example.com",
+	  "age": 28,
+	  "created_at": "2025-09-13T10:30:00Z"  // time.Time
+	}
+*/
+
+// create a gin server
+// register one post endpoint
+// read the body
+// parse the body and store json it in a struct
+
+// print the user locally
+func main() {
+
+	// read the body
+	//parse the body and store json it in a struct
+	// c.ShouldBindJSON(&struct)
+}
