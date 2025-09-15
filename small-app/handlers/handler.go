@@ -7,6 +7,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+
+
+`
+curl -X POST http://localhost:8080/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "age": 25,
+    "password": "mySecurePassword123"
+  }'
+
+curl localhost:3000/view
+`
+
+
+*/
+
 type handler struct {
 	uc users.Conn
 }
