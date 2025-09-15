@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"small-app/handlers"
+	"small-app/internal/users"
 	"time"
 )
 
-// Goal: User would send a userId and we would look up the user and return the user's details'
+// Goal: User would send a userEmail and we would look up the user and return the user's details'
 
 /*
 Graceful Shutdown:
@@ -18,6 +20,8 @@ Graceful Shutdown:
 	Existing requests will be completed, but a certain amount of time will be allowed for them to complete.
 */
 func main() {
+	// initalizing the map
+	con := users.NewConn()
 
 	// overriding the default http server, with timeout values and other configurations
 	api := http.Server{
@@ -25,6 +29,8 @@ func main() {
 		ReadTimeout:  8000 * time.Second,
 		WriteTimeout: 800 * time.Second,
 		IdleTimeout:  800 * time.Second,
+		// handler.InitRoutes returns a *gin.Engine, which implements the http.Handler interface
+		Handler: handlers.InitRoutes(con),
 	}
 
 	serverError := make(chan error)
