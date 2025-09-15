@@ -20,7 +20,10 @@ Graceful Shutdown:
 	Existing requests will be completed, but a certain amount of time will be allowed for them to complete.
 */
 func main() {
-	// initalizing the map
+	// initializing the map
+	// we should not call this function inside the handler functions
+	// handler functions can be called millions of times
+	// we want to initialize our dependencies only once, not every time we call of handler function
 	con := users.NewConn()
 
 	// overriding the default http server, with timeout values and other configurations

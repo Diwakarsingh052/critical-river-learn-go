@@ -22,6 +22,9 @@ func NewConn() Conn {
 }
 
 func (c *Conn) CreatUser(n NewUser) (User, error) {
+	//creating hash of password
+	// from hash output we can't get the original value
+	// safe for passwords
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(n.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return User{}, err
