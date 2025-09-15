@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// run go mod tidy // to install all the dependencies
 // Goal: User would send a userEmail and we would look up the user and return the user's details'
 
 /*
