@@ -21,6 +21,8 @@ import "testing"
 // weblist AnalyzeText // to see ui version of the report
 func BenchmarkAnalyzeText(b *testing.B) {
 	// b.N is a magic number, which automatically sets the number of iterations to run.
+	// don't use the below loop format,
+	//because go compiler can optimize the function calls within it
 	//for i := 0; i < b.N; i++ {
 	//	AnalyzeText("book.txt")
 	//}
