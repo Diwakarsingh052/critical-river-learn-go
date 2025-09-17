@@ -14,7 +14,7 @@ import "testing"
 // 710 allocs/op: This means that every execution of the benchmarked function resulted in 710 allocations from the heap (allocs/op stands for "heap allocations per operation"). This gives an insight into how much work the garbage collector will need to do as a result of running this function.
 
 // the below command generates memory profile
-// go test -run none -bench . -benchtime 3s -benchmem -v -memprofile p.out -gcflags=-m=1
+// go test -run none -bench . -benchtime 3s -benchmem -v -memprofile p.out
 // go tool pprof p.out
 // list AnalyzeText
 // top 5
