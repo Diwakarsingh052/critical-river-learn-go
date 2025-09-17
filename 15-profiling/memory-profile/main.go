@@ -60,9 +60,9 @@ func AnalyzeText(filename string) (TextAnalysis, error) {
 var cache = make(map[string]TextAnalysis)
 
 func OptimizedAnalyzeText(fileName string) (TextAnalysis, error) {
-	if res, ok := cache[fileName]; ok {
-		return res, nil
-	}
+	//if res, ok := cache[fileName]; ok {
+	//	return res, nil
+	//}
 
 	file, err := os.Open(fileName)
 	if err != nil {
