@@ -19,6 +19,8 @@ import "testing"
 // list AnalyzeText
 // top 5
 // weblist AnalyzeText // to see ui version of the report
+
+// go tool pprof -http=:8080 p.out
 func BenchmarkAnalyzeText(b *testing.B) {
 	// b.N is a magic number, which automatically sets the number of iterations to run.
 	// don't use the below loop format,
