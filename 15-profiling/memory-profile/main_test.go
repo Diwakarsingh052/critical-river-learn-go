@@ -20,6 +20,8 @@ import "testing"
 // top 5
 // weblist AnalyzeText // to see ui version of the report
 
+// graphviz , install this before running the below command
+// brew install graphviz
 // go tool pprof -http=:8080 p.out
 func BenchmarkAnalyzeText(b *testing.B) {
 	// b.N is a magic number, which automatically sets the number of iterations to run.

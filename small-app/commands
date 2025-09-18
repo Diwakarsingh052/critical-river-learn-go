@@ -1,0 +1,6 @@
+cat /etc/paths
+
+add $GOPATH/bin
+check GOPATH using go env GOPATH
+
+run go generate from cli, after going into users directory to generate mocks
