@@ -1,0 +1,221 @@
+===============================================================================
+                           PROJECT ARCHITECTURE DIAGRAM
+===============================================================================
+
+1. REQUEST FLOW DIAGRAM
+=======================
+
+Client Request (HTTP)
+      |
+      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            MAIN.GO (Entry Point)                            │
+│                                                                             │
+│  • Creates users.NewConn() - initializes in-memory cache                   │
+│  • Sets up HTTP server with timeout configurations                         │
+│  • Calls handlers.InitRoutes(con) to setup routing                        │
+│  • Implements graceful shutdown with signal handling                       │
+│  • Serves on port 3000                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+      |
+      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         HANDLERS LAYER (HTTP Layer)                        │
+│                                                                             │
+│  handlers/handler.go:                                                      │
+│  • InitRoutes() - Sets up Gin router with routes:                         │
+│    - POST /signup → h.Signup                                              │
+│    - GET /view → h.ViewAll                                                │
+│  • Creates handler struct with users.Store interface dependency            │
+│                                                                             │
+│  handlers/user_handlers.go:                                               │
+│  • Signup(c *gin.Context):                                                │
+│    1. Validates request body size (max 5KB)                               │
+│    2. Binds JSON to users.NewUser struct                                  │
+│    3. Calls h.uc.CreatUser(n)                                            │
+│    4. Returns JSON response                                                │
+│                                                                             │
+│  • ViewAll(c *gin.Context):                                               │
+│    1. Calls h.uc.FetchUsers()                                             │
+│    2. Returns JSON response with all users                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+      |
+      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        BUSINESS LOGIC LAYER (Service)                      │
+│                                                                             │
+│  internal/users/user_service.go:                                          │
+│                                                                             │
+│  Store Interface (Contract):                                               │
+│  • CreatUser(NewUser) (User, error)                                       │
+│  • FetchUsers() map[string]User                                           │
+│                                                                             │
+│  Conn Struct (Implementation):                                             │
+│  • cache: CacheStore (map[string]User)                                    │
+│  • mu: *sync.RWMutex (for thread safety)                                  │
+│                                                                             │
+│  CreatUser Method:                                                          │
+│  1. Hashes password using bcrypt                                           │
+│  2. Generates UUID for user ID                                             │
+│  3. Creates User struct from NewUser                                       │
+│  4. Thread-safe write to cache with mutex lock                            │
+│  5. Returns created User                                                   │
+│                                                                             │
+│  FetchUsers Method:                                                         │
+│  1. Thread-safe read from cache with RLock                                │
+│  2. Returns all users map                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+      |
+      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DATA LAYER (In-Memory)                            │
+│                                                                             │
+│  CacheStore: map[string]User                                               │
+│  • Key: User email                                                         │
+│  • Value: User struct with hashed password                                 │
+│  • Protected by sync.RWMutex for concurrent access                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Response flows back through the same layers in reverse order.
+
+===============================================================================
+
+
+
+===============================================================================
+
+
+===============================================================================
+
+4. MOCKING IN TESTING ARCHITECTURE
+==================================
+
+PRODUCTION FLOW:
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   Handler       │───▶│ users.Store      │───▶│   Conn (Real)       │
+│   (Production)  │    │ Interface        │    │   • Real cache      │
+│                 │    │                  │    │   • Real bcrypt     │
+│                 │    │                  │    │   • Real UUID gen   │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+
+TESTING FLOW:
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   Handler       │───▶│ users.Store      │───▶│   MockStore         │
+│   (Test)        │    │ Interface        │    │   • Controlled      │
+│                 │    │                  │    │   • Predictable     │
+│                 │    │                  │    │   • No side effects │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+
+MOCK GENERATION PROCESS:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          MOCK GENERATION FLOW                              │
+│                                                                             │
+│  1. Source Code Analysis:                                                  │
+│     user_service.go contains Store interface definition                    │
+│                                                                             │
+│  2. Code Generation Command:                                               │
+│     //go:generate mockgen -source user_service.go \                       │
+│                   -destination mockusers/user_service_mock.go \            │
+│                   -package mockusers                                       │
+│                                                                             │
+│  3. Generated Mock Components:                                             │
+│     • MockStore struct - implements users.Store interface                 │
+│     • MockStoreMockRecorder - records method calls                        │
+│     • EXPECT() method - sets up expectations                              │
+│     • Generated methods: CreatUser(), FetchUsers()                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TESTING WORKFLOW:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             TEST EXECUTION                                 │
+│                                                                             │
+│  Step 1: Test Setup                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ controller := gomock.NewController(t)                                │  │
+│  │ mock := mockusers.NewMockStore(controller)                          │  │
+│  │ h := handler{uc: mock}  // Inject mock instead of real Conn         │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Step 2: Set Expectations                                                  │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ mock.EXPECT().CreatUser(gomock.Eq(newUser))                         │  │
+│  │              .Return(mockUser, nil)                                  │  │
+│  │              .Times(1)                                               │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Step 3: Execute Test                                                      │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ • HTTP request sent to handler                                       │  │
+│  │ • Handler calls mock.CreatUser()                                     │  │
+│  │ • Mock returns predetermined response                                │  │
+│  │ • Assertions verify expected behavior                                │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TEST SCENARIOS COVERED:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            TEST CASES                                      │
+│                                                                             │
+│  1. Success Case ("Ok"):                                                   │
+│     • Valid JSON input                                                     │
+│     • Mock returns successful user creation                                │
+│     • Expects HTTP 200 with user data                                     │
+│                                                                             │
+│  2. Validation Failure ("Fail_NoEmail"):                                  │
+│     • Missing required email field                                         │
+│     • Mock expects NO calls to CreatUser                                  │
+│     • Expects HTTP 400 with validation error                              │
+│                                                                             │
+│  3. Size Limit Failure ("Fail_LargeContentLength"):                       │
+│     • Request body > 5KB                                                   │
+│     • Mock expects NO calls to CreatUser                                  │
+│     • Expects HTTP 400 with size limit error                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+BENEFITS OF MOCKING:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MOCKING ADVANTAGES                               │
+│                                                                             │
+│  • Isolation: Tests only handler logic, not service implementation         │
+│  • Speed: No real I/O operations or complex business logic                │
+│  • Predictability: Controlled responses for consistent test results       │
+│  • Edge Cases: Easy to simulate error conditions and edge cases           │
+│  • Independence: Tests don't depend on external systems or state          │
+│  • Parallel Execution: No shared state between tests                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+===============================================================================
+
+5. DEPENDENCY INJECTION PATTERN
+===============================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DEPENDENCY INJECTION FLOW                           │
+│                                                                             │
+│  Interface Definition (Contract):                                           │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ type Store interface {                                               │  │
+│  │     CreatUser(NewUser) (User, error)                                │  │
+│  │     FetchUsers() map[string]User                                     │  │
+│  │ }                                                                    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Handler Struct (Dependency Consumer):                                     │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ type handler struct {                                                │  │
+│  │     uc users.Store  // Interface dependency, not concrete type      │  │
+│  │ }                                                                    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Production Injection:                                                      │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ con := users.NewConn()        // Create real implementation         │  │
+│  │ h := handler{uc: &con}        // Inject concrete type               │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  Test Injection:                                                           │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ mock := mockusers.NewMockStore(ctrl)  // Create mock                │  │
+│  │ h := handler{uc: mock}                // Inject mock                 │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
