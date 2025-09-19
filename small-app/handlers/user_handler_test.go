@@ -50,7 +50,21 @@ func TestSignup(t *testing.T) {
 			expectedStatus:   http.StatusOK,
 			expectedResponse: `{"Id":"ab49a45c-ec2c-47a5-8675-9f072e2d9216","email":"d@email.com","name":"John Doe","age":30,"password_hash":"2a$10$EimVQRw4YiKIoMqh3JMwOesA9ngPGZT.chFEmPSaHzYl.mlnhLr12"}`,
 			mockStore: func(m *mockusers.MockStore) {
-				m.EXPECT().CreatUser(gomock.Eq(newUser)).Return(mockUser, nil)
+				m.EXPECT().CreatUser(gomock.Eq(newUser)).Return(mockUser, nil).Times(1)
+			},
+		},
+		{
+			name: "Fail_NoEmail",
+			body: []byte(`{
+  						"name": "John Doe",
+  						"age": 30,
+  						"password": "abc"
+  				}`),
+			expectedStatus:   http.StatusBadRequest,
+			expectedResponse: `{"error":"Key: 'NewUser.Email' Error:Field validation for 'Email' failed on the 'required' tag"}`,
+
+			mockStore: func(m *mockusers.MockStore) {
+				m.EXPECT().CreatUser(gomock.Any()).Times(0)
 			},
 		},
 	}
