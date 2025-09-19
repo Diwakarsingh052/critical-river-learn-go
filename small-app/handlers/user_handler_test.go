@@ -67,6 +67,16 @@ func TestSignup(t *testing.T) {
 				m.EXPECT().CreatUser(gomock.Any()).Times(0)
 			},
 		},
+		{
+			name:             "Fail_LargeContentLength",
+			body:             []byte(strings.Repeat("a", 6*1024)), // JSON string larger than 5KB
+			expectedStatus:   http.StatusBadRequest,
+			expectedResponse: `{"error":"Request body too large. Limit is 5KB"}`,
+			//a function setting up an expectation on a mock service
+			mockStore: func(m *mockusers.MockStore) {
+				m.EXPECT().CreatUser(gomock.Any()).Times(0)
+			},
+		},
 	}
 	// NewController need to be passed to the NewMockStore
 	// it is used for testing, takes testing.T as an argument
