@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16.3-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5434:5432" #5432 is default port of postgres, mapping 5434 to 5432
+      # from local machine we need to connect to 5434,
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 
+      - "8080:8080"
+
+# docker compose up // to run all the containers for this project
