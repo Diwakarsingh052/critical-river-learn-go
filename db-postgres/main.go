@@ -130,6 +130,9 @@ func getAllUsers(db *pgxpool.Pool) {
 
 	rows, err := db.Query(context.Background(), query)
 	if err != nil {
+		// log.Fatal should be avoided in production code
+		// it quits the program immediately
+		// only in startup code it should be fine
 		log.Fatalf("Unable to retrieve users: %v\n", err)
 	}
 	defer rows.Close()
@@ -139,6 +142,7 @@ func getAllUsers(db *pgxpool.Pool) {
 	for rows.Next() {
 		var u User
 
+		// Scan the values from the row, and store them in the user struct
 		err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Age)
 		if err != nil {
 			log.Printf("Unable to scan row: %v\n", err)

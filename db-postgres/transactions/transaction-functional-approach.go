@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ConnectToDB() *pgxpool.Pool {
+func main() {
+	db := ConnectToDBV2()
+	defer db.Close()
+	fmt.Println(Update(db))
+}
+
+func ConnectToDBV2() *pgxpool.Pool {
 	const (
 		host     = "localhost"
 		port     = "5434"
@@ -49,57 +54,56 @@ func ConnectToDB() *pgxpool.Pool {
 	return db
 }
 
-func main() {
-	db := ConnectToDB()
-	defer db.Close()
-	err := UpdateAuthor(db)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func UpdateAuthor(db *pgxpool.Pool) error {
-	// start a transaction
-	tx, err := db.BeginTx(context.Background(), pgx.TxOptions{})
-	if err != nil {
-		panic(err)
-	}
-	// calling rollback multiple times have no effect after commit
-	// rollback would roll back any changes if function return early without commit
-	defer func() {
-		err := tx.Rollback(context.Background())
-		if err != nil {
-			log.Printf("Unable to rollback transaction: %v\n", err)
-			return
-		}
-		fmt.Println("Transaction rolled back")
-
-	}()
-
-	updateQuery := `UPDATE author
+func Update(db *pgxpool.Pool) error {
+	f := func(tx pgx.Tx) error {
+		//
+		updateQuery := `UPDATE author
 					SET name = $1
 					WHERE email = $2;`
 
-	res, err := tx.Exec(context.Background(), updateQuery, "john", "john1.doe@example.com")
-	if err != nil {
-		return err
-	}
-	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no rows affected")
+		res, err := tx.Exec(context.Background(), updateQuery, "abc", "john.doe@example.com")
+		if err != nil {
+			return err
+		}
+		if res.RowsAffected() == 0 {
+			return fmt.Errorf("no rows affected")
+		}
+
+		res, err = tx.Exec(context.Background(), updateQuery, "xyz", "jane.smith@example.com")
+		if err != nil {
+			return err
+		}
+		if res.RowsAffected() == 0 {
+			return fmt.Errorf("no rows affected")
+		}
+		return nil
 	}
 
-	res, err = tx.Exec(context.Background(), updateQuery, "jane", "jane1.smith@example.com")
-	if err != nil {
-		return err
-	}
-	if res.RowsAffected() == 0 {
-		return fmt.Errorf("no rows affected")
-	}
-
-	err = tx.Commit(context.Background())
+	err := withTransaction(db, f)
 	if err != nil {
 		return err
 	}
 	return nil
+}
 
+func withTransaction(db *pgxpool.Pool, fn func(tx pgx.Tx) error) error {
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = fn(tx)
+	if err != nil {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to rollback transaction: %w", err)
+		}
+		return err
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to commit transaction: %w", err)
+	}
+	return nil
 }
