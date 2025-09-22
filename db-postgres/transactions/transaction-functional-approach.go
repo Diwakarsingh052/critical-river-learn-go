@@ -107,8 +107,8 @@ func withTransaction(db *pgxpool.Pool, fn func(tx pgx.Tx) error) error {
 	// Pass the transaction object so it can perform database operations
 	err = fn(tx)
 	if err != nil {
-		err1 := tx.Rollback(ctx)
-		if err1 != nil {
+		errRollback := tx.Rollback(ctx)
+		if errRollback != nil {
 			return fmt.Errorf("unable to rollback transaction: %w", err)
 		}
 		// If business logic failed, rollback the transaction
