@@ -55,6 +55,8 @@ func ConnectToDBV2() *pgxpool.Pool {
 }
 
 func Update(db *pgxpool.Pool) error {
+	// Business logic function, which takes a transaction object as input
+	// and performs database operations within the transaction
 	f := func(tx pgx.Tx) error {
 		//
 		updateQuery := `UPDATE author
@@ -79,6 +81,8 @@ func Update(db *pgxpool.Pool) error {
 		return nil
 	}
 
+	// Execute the business logic function within a transaction
+	// withTransaction handles all the transaction lifecycle (begin, commit, rollback)
 	err := withTransaction(db, f)
 	if err != nil {
 		return err
@@ -86,21 +90,32 @@ func Update(db *pgxpool.Pool) error {
 	return nil
 }
 
+// withTransaction  function that provides transaction management.
+// It takes a database pool and a function that contains the business logic,
+// then handles the transaction lifecycle automatically.
+
 func withTransaction(db *pgxpool.Pool, fn func(tx pgx.Tx) error) error {
 	ctx := context.Background()
+
+	// Begin a new database transaction
 	tx, err := db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 
+	// Execute the business logic function
+	// Pass the transaction object so it can perform database operations
 	err = fn(tx)
 	if err != nil {
-		err := tx.Rollback(ctx)
-		if err != nil {
+		err1 := tx.Rollback(ctx)
+		if err1 != nil {
 			return fmt.Errorf("unable to rollback transaction: %w", err)
 		}
+		// If business logic failed, rollback the transaction
 		return err
 	}
+
+	// If business logic succeeded, commit the transaction
 	err = tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to commit transaction: %w", err)
