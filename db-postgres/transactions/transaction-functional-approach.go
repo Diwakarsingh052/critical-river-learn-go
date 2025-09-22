@@ -122,3 +122,33 @@ func withTransaction(db *pgxpool.Pool, fn func(tx pgx.Tx) error) error {
 	}
 	return nil
 }
+
+/*
+┌─────────────────┐
+│   Update()      │
+│                 │
+│ 1. Define f()   │
+│ 2. Call         │
+│    withTransaction│
+└─────────┬───────┘
+          │
+	      ▼
+┌─────────────────┐
+│ withTransaction()│
+│                 │
+│ 1. Begin TX     │
+│ 2. Call f(tx)   │
+│ 3. Commit/      │
+│    Rollback     │
+└─────────┬───────┘
+		  │
+		  ▼
+┌─────────────────┐
+│     f(tx)       │
+│                 │
+│ 1. UPDATE #1    │
+│ 2. Check rows   │
+│ 3. UPDATE #2    │
+│ 4. Check rows   │
+└─────────────────┘
+*/
