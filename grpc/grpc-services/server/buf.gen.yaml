@@ -1,0 +1,12 @@
+version: v2
+plugins:
+
+  # This invokes the "protoc-gen-go" binary.
+  - local: protoc-gen-go
+    out: gen
+    opt: paths=source_relative
+
+  # This invokes the "protoc-gen-go-grpc" binary.
+  - local: protoc-gen-go-grpc
+    out: gen
+    opt: paths=source_relative

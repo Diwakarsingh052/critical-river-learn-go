@@ -1,5 +1,12 @@
 cd in proto directory then run below command to compile the protobuf files
 
+go env GOPATH
+
+sudo vi /etc/paths
+Add $GOPATH/bin in paths file
+
+
+
 Plugins:
 --go_out to comile and generate types in GO
 --go-grpc_out = it generates go specific interfaces for implementing gRPC services
