@@ -11,3 +11,5 @@ message BlogRequest {
   string title = 2;
   string content = 3;
 }
+
+// create one more msg, and use it in main.go
