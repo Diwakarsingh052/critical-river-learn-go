@@ -25,8 +25,28 @@ message SignupResponse {
   string result = 1;
 }
 
+
+//proto for server streaming
+message Post {
+  string title = 1;
+  string author = 2;
+  string body = 3;
+}
+
+
+message GetPostsRequest {
+  fixed64 user_id = 1;
+}
+message GetPostsResponse {
+  repeated Post posts = 1; // slice of post
+}
+
+
 service UserService {
   //unary rpc
   rpc Signup(SignupRequest) returns (SignupResponse);
+
+  //server streaming
+  rpc GetPosts(GetPostsRequest) returns (stream GetPostsResponse);
 
 }
