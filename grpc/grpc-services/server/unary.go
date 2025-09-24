@@ -22,6 +22,8 @@ func (us *UserService) Signup(ctx context.Context, req *pb.SignupRequest) (*pb.S
 	u.Password = user.GetPassword()
 	u.Roles = user.GetRoles()
 
+	// validate the request, using the validator package,
+	// validator instance is stored in the userService struct
 	err := us.v.Struct(u)
 	if err != nil {
 		// while returning error from grpc methods, use status.Errorf
