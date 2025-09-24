@@ -26,6 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
+	// unary rpc
 	Signup(ctx context.Context, in *SignupRequest, opts ...grpc.CallOption) (*SignupResponse, error)
 }
 
@@ -51,6 +52,7 @@ func (c *userServiceClient) Signup(ctx context.Context, in *SignupRequest, opts 
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
+	// unary rpc
 	Signup(context.Context, *SignupRequest) (*SignupResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }

@@ -26,7 +26,7 @@ type User struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// don't change field numbers, that is a breaking change
 	// we can change the field names
-	User          string   `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Name          string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Email         string   `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string   `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	Roles         []string `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"` // slice is repeated
@@ -64,9 +64,9 @@ func (*User) Descriptor() ([]byte, []int) {
 	return file_proto_user_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *User) GetUser() string {
+func (x *User) GetName() string {
 	if x != nil {
-		return x.User
+		return x.Name
 	}
 	return ""
 }
@@ -97,7 +97,7 @@ func (x *User) GetRoles() []string {
 // .. e.g. below
 type SignupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"` //  string id = 2;
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -189,7 +189,7 @@ const file_proto_user_proto_rawDesc = "" +
 	"\n" +
 	"\x10proto/user.proto\"b\n" +
 	"\x04User\x12\x12\n" +
-	"\x04user\x18\x01 \x01(\tR\x04user\x12\x14\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x14\n" +
 	"\x05roles\x18\x04 \x03(\tR\x05roles\"*\n" +
