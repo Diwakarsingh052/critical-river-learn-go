@@ -22,6 +22,7 @@ func main() {
 	// Create a gRPC server variable of type *grpc.Server
 	s := grpc.NewServer()
 
+	// start the gRPC server on the tcp port 5001
 	err = s.Serve(listener)
 	if err != nil {
 		panic(err)
