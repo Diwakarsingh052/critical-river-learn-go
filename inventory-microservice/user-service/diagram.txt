@@ -1,0 +1,163 @@
+USER-SERVICE PROJECT ARCHITECTURE & FLOW DIAGRAM
+=================================================
+
+PROJECT OVERVIEW:
+-----------------
+This is a Go-based microservice for user management and authentication using JWT tokens,
+built with Gin web framework and PostgreSQL database.
+
+PROJECT STRUCTURE:
+------------------
+user-service/
+├── main.go                           # Application entry point
+├── handlers/                         # HTTP request handlers
+│   ├── handlers.go                   # Route registration
+│   └── users.go                      # User-specific handlers (SignUp, Login)
+├── internal/                         # Internal packages
+│   ├── auth/                         # JWT authentication logic
+│   │   └── auth.go                   # Token generation/validation
+│   ├── users/                        # User business logic
+│   │   ├── users.go                  # User operations (CRUD)
+│   │   └── models.go                 # User data structures
+│   └── stores/postgres/              # Database layer
+│       ├── db.go                     # Database connection & migrations
+│       └── migrations/               # Database schema migrations
+├── exp/                              # Experimental/example code
+│   ├── creating-jwt-token/           # JWT token creation examples
+│   └── verify-token/                 # Token verification examples
+├── private.pem                       # RSA private key for JWT signing
+├── pubkey.pem                        # RSA public key for JWT verification
+├── Dockerfile                        # Container configuration
+└── .env                              # Environment variables
+
+APPLICATION FLOW:
+-----------------
+
+1. STARTUP SEQUENCE:
+   main.go
+   ├── Load .env file
+   ├── Call setup()
+   │   ├── setupDatabase()
+   │   │   ├── postgres.OpenDb() - Connect to PostgreSQL with retry logic
+   │   │   └── postgres.RunMigrations() - Run database migrations
+   │   ├── users.NewConf(db) - Initialize user configuration with DB
+   │   ├── Load RSA keys (private.pem, pubkey.pem)
+   │   ├── auth.NewKeys() - Initialize JWT key manager
+   │   ├── gin.New() - Create web server
+   │   ├── handlers.RegisterRoutes() - Register API endpoints
+   │   └── r.Run(":80") - Start server on port 80
+
+2. API ENDPOINTS:
+   GET  /ping                         # Health check endpoint
+   POST /users/signup                 # User registration
+   POST /users/login                  # User authentication
+   GET  /users/onlyLoggedin          # Protected endpoint (placeholder)
+
+3. USER REGISTRATION FLOW (/users/signup):
+   HTTP Request (JSON: name, email, password, roles)
+   ├── handlers.SignUp()
+   │   ├── Parse & validate JSON request
+   │   ├── Validate using struct tags & validator
+   │   └── Call conf.InsertUser()
+   │       ├── Generate UUID for user
+   │       ├── Hash password using bcrypt
+   │       ├── Start database transaction
+   │       ├── Insert user into database
+   │       └── Return User object (without password hash)
+   └── Return HTTP 201 Created with user data
+
+4. USER LOGIN FLOW (/users/login):
+   HTTP Request (JSON: email, password)
+   ├── handlers.Login()
+   │   ├── Parse & validate JSON request
+   │   ├── Call conf.AuthenticateUser()
+   │   │   ├── Start database transaction
+   │   │   ├── Query user by email
+   │   │   ├── Compare password hash using bcrypt
+   │   │   └── Return User object if valid
+   │   ├── Create JWT Claims with user data
+   │   │   ├── Set issuer: "user-service"
+   │   │   ├── Set subject: user.ID
+   │   │   ├── Set expiration: 1 hour from now
+   │   │   └── Include user roles
+   │   ├── Generate JWT token using RSA private key
+   │   └── Return HTTP 200 OK with JWT token
+   └── Client receives JWT for authenticated requests
+
+DATABASE LAYER:
+---------------
+- Uses PostgreSQL with pgx driver
+- Connection with retry logic
+- Environment-based configuration:
+  * POSTGRES_HOST, POSTGRES_PORT
+  * POSTGRES_USER, POSTGRES_PASSWORD
+  * POSTGRES_DATABASE
+- Database migrations managed by Goose
+- Transaction support for data consistency
+
+AUTHENTICATION SYSTEM:
+----------------------
+- RSA-based JWT tokens (RS256 algorithm)
+- Private key for signing tokens
+- Public key for verifying tokens
+- Custom Claims structure includes:
+  * Standard JWT claims (issuer, subject, expiration)
+  * User roles array
+- Token expiration: 1 hour
+- Password security: bcrypt hashing
+
+DATA MODELS:
+------------
+User struct:
+- ID (UUID string)
+- Name (string)
+- Email (string)
+- PasswordHash (string, hidden from JSON)
+- Roles (string array: "user" or "admin")
+- CreatedAt (timestamp)
+- UpdatedAt (timestamp)
+
+NewUser struct (for registration):
+- Name (required, 2-100 chars)
+- Email (required, valid email)
+- Password (required, min 5 chars)
+- Roles (required, unique, must be "user" or "admin")
+
+SECURITY FEATURES:
+------------------
+- Password hashing with bcrypt
+- JWT token-based authentication
+- RSA key pair for secure token signing/verification
+- Input validation with struct tags
+- SQL injection protection through parameterized queries
+- Database transactions for data integrity
+
+ERROR HANDLING:
+---------------
+- Structured logging with slog
+- HTTP status codes for different error types
+- Transaction rollback on failures
+- Graceful error responses in JSON format
+- Database connection retry mechanism
+
+EXTERNAL DEPENDENCIES:
+----------------------
+- gin-gonic/gin: Web framework
+- golang-jwt/jwt/v5: JWT token handling
+- golang.org/x/crypto/bcrypt: Password hashing
+- jackc/pgx/v5: PostgreSQL driver
+- pressly/goose/v3: Database migrations
+- go-playground/validator/v10: Input validation
+- google/uuid: UUID generation
+- joho/godotenv: Environment variable loading
+
+DEPLOYMENT:
+-----------
+- Dockerized application
+- Runs on port 80
+- Requires RSA key pair files
+- Environment-based configuration
+- Can be part of microservices architecture
+
+This user service provides a complete authentication solution with secure password handling,
+JWT token management, and robust database operations, suitable for microservices architecture.

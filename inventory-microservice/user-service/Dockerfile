@@ -40,6 +40,8 @@ COPY --from=builder /app/user-service .
 COPY --from=builder /app/internal/stores/postgres/migrations ./internal/stores/postgres/migrations
 
 COPY .env .
+COPY private.pem .
+COPY pubkey.pem . 
 
 
 EXPOSE 80

@@ -4,21 +4,43 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
+	"user-service/internal/auth"
 	"user-service/internal/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 )
+
+/*
+signup request json
+
+	{
+	  "name": "Diwakar",
+	  "email": "diwakar@example.com",
+	  "password": "securepassword",
+	  "roles": ["user"]
+	}
+*/
+/*
+login request json
+{
+  "email": "diwakar@example.com",
+  "password": "securepassword"
+}
+*/
 
 type Handler struct {
 	conf *users.Conf
+	k    *auth.Keys
 }
 
-func NewHandler(conf *users.Conf) (*Handler, error) {
-	if conf == nil {
-		return nil, errors.New("conf is nil")
+func NewHandler(conf *users.Conf, k *auth.Keys) (*Handler, error) {
+	if conf == nil || k == nil {
+		return nil, errors.New("conf or auth is nil")
 	}
-	return &Handler{conf: conf}, nil
+	return &Handler{conf: conf, k: k}, nil
 
 }
 
@@ -97,6 +119,19 @@ func (h *Handler) Login(c *gin.Context) {
 		slog.Error("Error authenticating user", slog.String("error", err.Error()))
 		return
 	}
-
-	c.JSON(http.StatusOK, user)
+	var claim auth.Claims
+	claim.RegisteredClaims = jwt.RegisteredClaims{
+		Issuer:    "user-service",
+		Subject:   user.ID,
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+	}
+	claim.Roles = user.Roles
+	token, err := h.k.GenerateToken(claim)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "problem in logging in"})
+		slog.Error("Error generating token", slog.String("error", err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, token)
 }

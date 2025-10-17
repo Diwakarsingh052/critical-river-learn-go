@@ -3,11 +3,14 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"os"
 	"user-service/handlers"
+	"user-service/internal/auth"
 	"user-service/internal/stores/postgres"
 	"user-service/internal/users"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -39,9 +42,39 @@ func setup() {
 		panic(err)
 	}
 
+	//------------------------------------------------------//
+	/*
+			//------------------------------------------------------//
+		                Setting up Auth layer
+			//------------------------------------------------------//
+	*/
+	slog.Info("main : Started : Initializing authentication support")
+	privatePEM, err := os.ReadFile("private.pem")
+	if err != nil {
+		panic(err)
+	}
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privatePEM)
+	if err != nil {
+		panic(err)
+	}
+
+	pubKeyPEM, err := os.ReadFile("pubkey.pem")
+	if err != nil {
+		panic(err)
+	}
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(pubKeyPEM)
+	if err != nil {
+		panic(err)
+	}
+
+	k, err := auth.NewKeys(privateKey, publicKey)
+	if err != nil {
+		panic(err)
+	}
+
 	// setting up routes, and running the server
 	r := gin.New()
-	handlers.RegisterRoutes(r, conf)
+	handlers.RegisterRoutes(r, conf, k)
 	err = r.Run(":80")
 	if err != nil {
 		panic(err)
