@@ -159,5 +159,103 @@ DEPLOYMENT:
 - Environment-based configuration
 - Can be part of microservices architecture
 
-This user service provides a complete authentication solution with secure password handling,
-JWT token management, and robust database operations, suitable for microservices architecture.
+DEPENDENCY FLOW DIAGRAM:
+========================
+
+DEPENDENCY INJECTION HIERARCHY:
+-------------------------------
+
+main.go (Entry Point)
+├── godotenv.Load(".env") ─────────────────────────→ Environment Variables
+├── setup() ──────────────────────────────────────→ Application Setup
+│   │
+│   ├── setupDatabase() ──────────────────────────→ *sql.DB
+│   │   ├── postgres.OpenDb() ────────────────────→ Database Connection
+│   │   │   ├── Environment Variables ────────────→ Connection Config
+│   │   │   │   ├── POSTGRES_HOST
+│   │   │   │   ├── POSTGRES_PORT
+│   │   │   │   ├── POSTGRES_USER
+│   │   │   │   ├── POSTGRES_PASSWORD
+│   │   │   │   └── POSTGRES_DATABASE
+│   │   │   └── sql.Open(driverName, connString) ─→ *sql.DB
+│   │   └── postgres.RunMigrations(db) ───────────→ Schema Setup
+│   │
+│   ├── users.NewConf(db) ────────────────────────→ *users.Conf
+│   │   └── users.Conf{db: *sql.DB} ──────────────→ Database Layer Wrapper
+│   │
+│   ├── RSA Key Loading ──────────────────────────→ *auth.Keys
+│   │   ├── os.ReadFile("private.pem") ───────────→ Private Key
+│   │   ├── jwt.ParseRSAPrivateKeyFromPEM() ──────→ *rsa.PrivateKey
+│   │   ├── os.ReadFile("pubkey.pem") ────────────→ Public Key
+│   │   ├── jwt.ParseRSAPublicKeyFromPEM() ───────→ *rsa.PublicKey
+│   │   └── auth.NewKeys(privateKey, publicKey) ──→ *auth.Keys
+│   │
+│   ├── gin.New() ────────────────────────────────→ *gin.Engine
+│   │
+│   └── handlers.RegisterRoutes(r, conf, k) ──────→ Route Setup
+│       └── handlers.NewHandler(conf, k) ─────────→ *handlers.Handler
+│           ├── conf *users.Conf ─────────────────→ Database Operations
+│           └── k *auth.Keys ─────────────────────→ JWT Operations
+
+DEPENDENCY FLOW THROUGH REQUEST HANDLERS:
+------------------------------------------
+
+HTTP Request → Gin Router → Handler Methods
+
+1. SIGNUP FLOW DEPENDENCIES:
+   handlers.Handler.SignUp(c *gin.Context)
+   ├── h.conf *users.Conf ──────────────────────→ Database Operations
+   │   ├── h.conf.InsertUser(ctx, newUser) ─────→ User Creation
+   │   │   ├── h.conf.db *sql.DB ───────────────→ Database Connection
+   │   │   ├── h.conf.withTx(ctx, fn) ──────────→ Transaction Management
+   │   │   │   ├── h.conf.db.BeginTx(ctx, nil) ─→ Start Transaction
+   │   │   │   ├── tx.QueryRowContext() ────────→ Execute Query
+   │   │   │   └── tx.Commit() ─────────────────→ Commit Transaction
+   │   │   └── bcrypt.GenerateFromPassword() ───→ Password Hashing
+   │   └── Return User Object
+
+2. LOGIN FLOW DEPENDENCIES:
+   handlers.Handler.Login(c *gin.Context)
+   ├── h.conf *users.Conf ──────────────────────→ User Authentication
+   │   ├── h.conf.AuthenticateUser() ───────────→ User Verification
+   │   │   ├── h.conf.db *sql.DB ───────────────→ Database Query
+   │   │   ├── h.conf.withTx(ctx, fn) ──────────→ Transaction Management
+   │   │   └── bcrypt.CompareHashAndPassword() ─→ Password Verification
+   │   └── Return Authenticated User
+   └── h.k *auth.Keys ───────────────────────────→ JWT Token Generation
+       ├── h.k.GenerateToken(claims) ───────────→ Token Creation
+       │   ├── jwt.NewWithClaims() ─────────────→ JWT Claims
+       │   ├── h.k.privateKey *rsa.PrivateKey ──→ Token Signing
+       │   └── tkn.SignedString() ──────────────→ Signed JWT Token
+       └── Return JWT Token
+
+DEPENDENCY RELATIONSHIPS:
+-------------------------
+
+*sql.DB (Database Connection)
+├── Created in: main.setupDatabase()
+├── Injected into: users.NewConf(db)
+├── Used by: users.Conf methods
+└── Purpose: Database operations, transactions
+
+*users.Conf (User Business Logic)
+├── Created in: main.setup() with users.NewConf(db)
+├── Contains: *sql.DB dependency
+├── Injected into: handlers.NewHandler(conf, k)
+├── Used by: handlers.Handler methods
+└── Purpose: User CRUD operations, authentication
+
+*auth.Keys (JWT Authentication)
+├── Created in: main.setup() with auth.NewKeys(privateKey, publicKey)
+├── Contains: *rsa.PrivateKey, *rsa.PublicKey
+├── Injected into: handlers.NewHandler(conf, k)
+├── Used by: handlers.Handler.Login()
+└── Purpose: JWT token generation and validation
+
+*handlers.Handler (HTTP Request Handler)
+├── Created in: handlers.RegisterRoutes() with handlers.NewHandler()
+├── Contains: conf *users.Conf, k *auth.Keys
+├── Used by: Gin route handlers
+└── Purpose: HTTP request processing, business logic coordination
+
+
