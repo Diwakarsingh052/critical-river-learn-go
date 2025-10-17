@@ -1,0 +1,9 @@
+services:
+
+  small-app:
+    build: .
+    container_name: small-app
+    ports:
+      - "3000:3000"
+
+#docker compose up --build

@@ -1,0 +1,29 @@
+services:
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:80"
+    networks:
+      - web
+      
+  user-postgres:
+    image: postgres:17.6-alpine
+    container_name: user-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes: #setting the data directory in the project
+      - ./project-db/user-postgres/postgres/:/var/lib/postgresql/data/
+    networks:
+      - web
+
+#Containers connected to the same bridge network can communicate with each other
+networks:
+  web:
+    driver: bridge

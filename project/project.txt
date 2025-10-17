@@ -1,0 +1,12 @@
+
+
+API Gateway
+Service Discovery :- Consul
+
+Two Microservices
+Rest Service
+User Microservice -> Login, Register, Auth using JWT
+
+Event Driven using Redis Streams
+Notification Service -> It would read user creating events and send email
+https://mailtrap.io/ to send emails

@@ -22,7 +22,8 @@ q2. Create a stringops package with three files.
          Internal Function: toUpperCase(s string) string
          File 3: trim.go
          Internal Function: trimSpace(s string) string
-
+    Call toUpperCase and trimSpace in TrimSpaceAndUppercase.
+    Call TrimSpaceAndUppercase in package main
 
 q3. Create the following directory structure
                 app-/
