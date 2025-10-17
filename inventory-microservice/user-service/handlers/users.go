@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"user-service/internal/users"
 
@@ -31,6 +32,9 @@ func (h *Handler) SignUp(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": http.StatusText(http.StatusBadRequest),
 		})
+
+		slog.Error("Error in parsing request body:",
+			slog.String("error", err.Error()))
 		return
 	}
 
