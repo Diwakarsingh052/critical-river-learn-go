@@ -16,6 +16,7 @@ func RegisterRoutes(r *gin.Engine, conf *users.Conf) {
 	v1 := r.Group(endpointPrefix)
 	{
 		v1.POST("/signup", h.SignUp)
+		v1.POST("/login", h.Login)
 	}
 
 }

@@ -68,6 +68,40 @@ func (c *Conf) InsertUser(ctx context.Context, newUser NewUser) (User, error) {
 
 }
 
+func (c *Conf) AuthenticateUser(ctx context.Context, email string, password string) (User, error) {
+	var user User
+	f := func(tx *sql.Tx) error {
+		query := `
+SELECT id, name, email, password_hash, created_at, updated_at, roles
+		FROM users
+		WHERE email = $1
+`
+		var passwordHash string
+
+		err := tx.QueryRowContext(ctx, query, email).
+			Scan(&user.ID, &user.Name, &user.Email, &passwordHash,
+				&user.CreatedAt, &user.UpdatedAt, &user.Roles)
+
+		if err != nil {
+			return fmt.Errorf("failed to fetch user: %w", err)
+		}
+
+		// Compare the stored hashed password with the provided password
+		err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+		if err != nil {
+			return fmt.Errorf("invalid password: %w", err)
+		}
+		return nil
+
+	}
+
+	err := c.withTx(ctx, f)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to authenticate user: %w", err)
+	}
+	return user, nil
+}
+
 // withTx is a helper function that simplifies the usage of SQL transactions.
 // It begins a transaction using the provided context (`ctx`), executes the given function (`fn`),
 // and handles commit or rollback based on the success or failure of the function.
